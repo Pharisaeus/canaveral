@@ -1,6 +1,8 @@
 package pl.codewise.canaveral.mock.jmx;
 
-import com.codewise.voluum.utils.it.MockConfig;
+
+import com.google.common.collect.ImmutableList;
+import pl.codewise.canaveral.core.mock.MockConfig;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -29,7 +31,7 @@ public class JmxMockConfig implements MockConfig<JmxMockProvider> {
         JmxRuleCreator jmxRuleCreator = new JmxRuleCreator();
         JmxMockRuleProvider jmxMockRuleProvider = new JmxMockRuleProvider(jmxRuleCreator);
         ruleProvider.accept(jmxMockRuleProvider);
-        rules = copyOf(jmxRuleCreator.getRules());
+        rules = ImmutableList.copyOf(jmxRuleCreator.getRules());
         return this;
     }
 

@@ -1,8 +1,8 @@
 package pl.codewise.canaveral.mock.jmx;
 
-import com.codewise.voluum.utils.it.MockProvider;
-import com.codewise.voluum.utils.it.RunnerCache;
 import com.google.common.base.Strings;
+import pl.codewise.canaveral.core.mock.MockProvider;
+import pl.codewise.canaveral.core.runtime.RunnerContext;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -46,19 +46,14 @@ public class JmxMockProvider implements MockProvider {
     }
 
     @Override
-    public void start(int port, RunnerCache cache) throws Exception {
-        this.port = port;
+    public void start(RunnerContext context) throws Exception {
+        this.port = context.getFreePort();
         this.jmxMockInstance = new JmxMock(jmxMockConfig.getRules());
         jmxMockInstance.start(getEndpoint(), getPort());
         String jmxPortProperty = jmxMockConfig.getJmxPortProperty();
         if (!Strings.isNullOrEmpty(jmxPortProperty)) {
             System.setProperty(jmxPortProperty, Integer.toString(port));
         }
-    }
-
-    @Override
-    public void allMocksCreated(RunnerCache cache) {
-
     }
 
     @Override

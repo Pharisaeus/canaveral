@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>pl.codewise.canaveral</groupId>
-        <artifactId>canaveral</artifactId>
+        <artifactId>canaveral-mocks</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 

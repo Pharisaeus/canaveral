@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>pl.codewise.canaveral</groupId>
-        <artifactId>canaveral</artifactId>
+        <artifactId>canaveral-mocks</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
@@ -19,9 +19,15 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.kstyrc</groupId>
-            <artifactId>embedded-redis</artifactId>
-            <version>0.6</version>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -35,10 +35,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 // TODO replace with real eureka client
-public class EurekaMockProviderIntegrationTest {
+class EurekaMockProviderIntegrationTest {
 
-    public static final String HOST_NAME_2 = "10.0.11.12";
-    public static final String LOCALHOST = "localhost";
+    private static final String HOST_NAME_2 = "10.0.11.12";
+    private static final String LOCALHOST = "localhost";
     private final ObjectMapper responseMapper = new EurekaJsonJacksonCodec().getObjectMapper(Applications.class);
     private final ObjectMapper requestMapper = new EurekaJsonJacksonCodec().getObjectMapper(EurekaHandler
             .InstanceInfoWrapper.class);
@@ -53,7 +53,7 @@ public class EurekaMockProviderIntegrationTest {
     private EurekaMockProvider eurekaMockProvider;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
         eurekaMockProvider = EurekaMockProvider.newConfig()
                 .registerEndpointUnder("eureka.client.serviceUrl.defaultZone")
@@ -77,7 +77,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldReturnEmptyApplications() throws Exception {
+    void shouldReturnEmptyApplications() throws Exception {
         // given
         URL obj = new URL(urlToService("/apps/?"));
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -92,7 +92,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldReturnConfiguredDiscoverableApplicationsWithStaticallyRegisteredApps() throws Exception {
+    void shouldReturnConfiguredDiscoverableApplicationsWithStaticallyRegisteredApps() throws Exception {
         // given
         eurekaMockProvider = EurekaMockProvider.newConfig()
                 .registerEndpointUnder("eureka.client.serviceUrl.defaultZone")
@@ -141,7 +141,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldReturnConfiguredDiscoverableApplications() throws Exception {
+    void shouldReturnConfiguredDiscoverableApplications() throws Exception {
         // given
         when(runnerContext.getMocks()).thenReturn(Stream.of(
                 noOpMockProvider,
@@ -179,7 +179,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldReturnLazilyDiscoveredApplications() throws Exception {
+    void shouldReturnLazilyDiscoveredApplications() throws Exception {
         // given
         int expectedAppPort = 45333;
         String expectedAppHost = "localhost";
@@ -258,7 +258,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldReturnAllApplications() throws Exception {
+    void shouldReturnAllApplications() throws Exception {
         // given
         long initialVersion = 0L;
 
@@ -309,7 +309,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldHandleAppHeartbeatOfUnknownApp() throws Exception {
+    void shouldHandleAppHeartbeatOfUnknownApp() throws Exception {
         // given
         int expectedAppPort = 45333;
         String expectedAppHost = "localhost";
@@ -324,7 +324,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldHandleAppHeartbeat() throws Exception {
+    void shouldHandleAppHeartbeat() throws Exception {
         // given
         int expectedAppPort = 45333;
         String expectedAppHost = "localhost";
@@ -341,7 +341,7 @@ public class EurekaMockProviderIntegrationTest {
     }
 
     @Test
-    public void shouldHandleAppDelete() throws Exception {
+    void shouldHandleAppDelete() throws Exception {
         // given
 
         // when

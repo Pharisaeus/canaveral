@@ -1,12 +1,16 @@
 package pl.codewise.canaveral.mock.redis;
 
-import com.codewise.voluum.utils.it.MockConfig;
-import com.codewise.voluum.utils.it.MockProvider;
-import com.codewise.voluum.utils.it.RunnerCache;
 import com.google.common.base.MoreObjects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.embedded.RedisServer;
+import org.testcontainers.containers.GenericContainer;
+import pl.codewise.canaveral.core.mock.MockConfig;
+import pl.codewise.canaveral.core.mock.MockProvider;
+import pl.codewise.canaveral.core.runtime.RunnerContext;
+
+import java.time.Duration;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 public class RedisMockProvider implements MockProvider {
 
@@ -15,7 +19,8 @@ public class RedisMockProvider implements MockProvider {
     private final RedisMockConfig mockConfig;
     private final String mockName;
     private int port;
-    private RedisServer server;
+    private String host;
+    private GenericContainer server;
 
     private RedisMockProvider(RedisMockConfig mockConfig, String mockName) {
         this.mockConfig = mockConfig;
@@ -33,7 +38,7 @@ public class RedisMockProvider implements MockProvider {
 
     @Override
     public String getHost() {
-        return mockConfig.host;
+        return host;
     }
 
     @Override
@@ -47,18 +52,24 @@ public class RedisMockProvider implements MockProvider {
     }
 
     @Override
-    public void start(int port, RunnerCache cache) throws Exception {
-        this.port = port;
+    public void start(RunnerContext context) {
+        log.info("Starting redis mock from {}.", mockConfig.image);
 
-        String key = mockConfig.hostProperty;
-        System.setProperty(key, getHost());
-        log.info("Setting system property {} to {}.", key, System.getProperty(key));
-        key = mockConfig.portProperty;
-        System.setProperty(key, Integer.toString(getPort()));
-        log.info("Setting system property {} to {}.", key, System.getProperty(key));
+        server = new GenericContainer(mockConfig.image)
+                .withExposedPorts(6379)
+                .withStartupTimeout(Duration.ofSeconds(5));
+        server.start();
 
-        server = new RedisServer(port);
-        reset();
+        this.port = server.getFirstMappedPort();
+        this.host = server.getContainerIpAddress();
+
+        setSystemProperty(mockConfig.portProperty, Integer.toString(port));
+        setSystemProperty(mockConfig.hostProperty, getHost());
+    }
+
+    private void setSystemProperty(String key, String value) {
+        System.setProperty(key, value);
+        log.info("Setting system property {} to {}.", key, System.getProperty(key));
     }
 
     @Override
@@ -67,7 +78,7 @@ public class RedisMockProvider implements MockProvider {
     }
 
     public RedisMockProvider reset() {
-        if (server.isActive()) {
+        if (server.isRunning()) {
             server.stop();
         }
         server.start();
@@ -83,9 +94,9 @@ public class RedisMockProvider implements MockProvider {
 
     public static class RedisMockConfig implements MockConfig<RedisMockProvider> {
 
-        private String host = HOST;
         private String hostProperty;
         private String portProperty;
+        private String image;
 
         private RedisMockConfig() {
         }
@@ -102,6 +113,12 @@ public class RedisMockProvider implements MockProvider {
 
         public RedisMockConfig registerPortUnder(String key) {
             portProperty = key;
+            return this;
+        }
+
+        public RedisMockConfig overrideRedisVersion(String image) {
+            checkArgument(image.startsWith("redis:"), "Redis docker image should be referenced as 'redis:version'.");
+            this.image = image;
             return this;
         }
     }
