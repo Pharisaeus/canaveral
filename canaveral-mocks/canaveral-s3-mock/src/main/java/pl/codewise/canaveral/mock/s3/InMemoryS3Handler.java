@@ -31,9 +31,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.google.common.base.Strings.*;
+import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.google.common.base.Strings.nullToEmpty;
 import static java.util.Comparator.comparing;
-import static javax.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_METHOD_NOT_ALLOWED;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 
 public class InMemoryS3Handler extends AbstractHandler {
@@ -432,7 +437,7 @@ public class InMemoryS3Handler extends AbstractHandler {
     private interface GetRequestHandler {
 
         boolean handle(InMemoryS3Handler instance, HttpServletResponse response,
-                String key, String bucket,
-                HttpServletRequest request) throws Throwable;
+                       String key, String bucket,
+                       HttpServletRequest request) throws Throwable;
     }
 }

@@ -18,6 +18,22 @@
         <module>canaveral-eureka-mock</module>
         <module>canaveral-s3-mock</module>
         <module>canaveral-postgresql-mock</module>
+        <module>canaveral-redis-mock</module>
+        <module>canaveral-jmx-service-mock</module>
     </modules>
+
+    <properties>
+        <testcontainers.version>1.10.1</testcontainers.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${testcontainers.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>
