@@ -48,7 +48,7 @@ public interface RunnerContext {
      *
      * @throws IllegalArgumentException if cannot find mock by provided ref.
      */
-    MockProvider getMock(String ref);
+    Object getMock(String ref);
 
     /**
      * @param mockType of the mock.
@@ -57,7 +57,7 @@ public interface RunnerContext {
      *
      * @throws IllegalArgumentException if cannot find mock by provided class.
      */
-    <T extends MockProvider> T getMock(Class<?> mockType);
+    <T> T getMock(Class<?> mockType);
 
     Stream<MockProvider> getMocks();
 

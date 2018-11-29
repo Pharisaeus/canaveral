@@ -7,6 +7,7 @@ import pl.codewise.canaveral.core.runtime.ConfigureRunnerWith;
 import pl.codewise.canaveral.mock.http.HttpNoDepsMockProvider;
 import pl.codewise.canaveral.runner.junit5.JUnit5CanaveralRunner;
 import pl.codewise.samples.spring.client.RestClient;
+import pl.codewise.samples.spring.it.configuration.BinaryMockServer;
 import pl.codewise.samples.spring.it.configuration.SampleAppRunnerConfiguration;
 
 @ExtendWith(JUnit5CanaveralRunner.class)
@@ -18,4 +19,11 @@ abstract class BaseIT {
 
     @InjectTestBean
     RestClient restClient;
+
+    @InjectMock
+    BinaryMockServer binaryMockServer;
+
+
+
+
 }

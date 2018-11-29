@@ -3,9 +3,11 @@ package pl.codewise.samples.spring.it.configuration;
 import com.google.common.collect.ImmutableMap;
 import pl.codewise.canaveral.addon.spring.provider.SpringBootApplicationProvider;
 import pl.codewise.canaveral.addon.spring.provider.SpringTestContextProvider;
+import pl.codewise.canaveral.core.mock.MockProviderAdapter;
 import pl.codewise.canaveral.core.runtime.ProgressAssertion;
 import pl.codewise.canaveral.core.runtime.RunnerConfiguration;
 import pl.codewise.canaveral.core.runtime.RunnerConfigurationProvider;
+import pl.codewise.canaveral.core.runtime.RunnerContext;
 import pl.codewise.canaveral.mock.http.HttpNoDepsMockProvider;
 import pl.codewise.canaveral.mock.http.Method;
 import pl.codewise.canaveral.mock.http.Mime;
@@ -39,7 +41,27 @@ public class SampleAppRunnerConfiguration implements RunnerConfigurationProvider
                                                 ImmutableMap.of("content", emptyList()),
                                                 Mime.JSON))
                                 )
-                        ))
+                        )
+                        .provideMock("mockAdapter",
+                                name -> adaptBinaryServer(name)
+                                        .withProperty("pl.codewise.binary.endpoint",
+                                                mock -> "localhost:" + mock.getPort())))
                 .build();
+    }
+
+    private MockProviderAdapter<BinaryMockServer> adaptBinaryServer(String name) {
+        return new MockProviderAdapter<BinaryMockServer>(name,
+                runnerContext -> new BinaryMockServer(runnerContext.getFreePort())) {
+            @Override
+            protected int initialize(RunnerContext context) {
+                providedMock().start();
+                return providedMock().getPort();
+            }
+
+            @Override
+            public void stop() throws Exception {
+                providedMock().close();
+            }
+        };
     }
 }

@@ -23,4 +23,16 @@ public class RestClient {
                 .toUri();
         return client.getForObject(uri, Response.class);
     }
+
+    public Integer factorizeNumber(long number) {
+        return client.getForObject(UriComponentsBuilder.fromUriString(endpoint + "/factorize")
+                        .queryParam("number", number)
+                        .build()
+                        .toUri()
+                , Integer.class);
+    }
+
+
+
+
 }

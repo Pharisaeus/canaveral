@@ -50,7 +50,7 @@ public class RestController {
 
     @RequestMapping(method = GET, produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
-    public Response isCampaignBiddable(@RequestParam("q") String query) {
+    public Response search(@RequestParam("q") String query) {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(query), "Query must be provided");
 
         URI uri = UriComponentsBuilder.fromUriString(downstreamEndpoint + "/search")

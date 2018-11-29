@@ -17,6 +17,7 @@
         <module>canaveral-downstream-http-mock</module>
         <module>canaveral-eureka-mock</module>
         <module>canaveral-s3-mock</module>
+        <module>canaveral-postgresql-mock</module>
         <module>canaveral-redis-mock</module>
         <module>canaveral-jmx-service-mock</module>
     </modules>

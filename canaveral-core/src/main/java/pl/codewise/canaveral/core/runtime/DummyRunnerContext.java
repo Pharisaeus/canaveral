@@ -54,12 +54,12 @@ public class DummyRunnerContext implements RunnerContext {
     }
 
     @Override
-    public MockProvider getMock(String ref) {
+    public Object getMock(String ref) {
         return null;
     }
 
     @Override
-    public <T extends MockProvider> T getMock(Class<?> mockType) {
+    public <T> T getMock(Class<?> mockType) {
         return null;
     }
 

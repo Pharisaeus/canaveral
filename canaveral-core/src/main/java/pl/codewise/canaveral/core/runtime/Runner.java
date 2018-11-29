@@ -179,7 +179,9 @@ public final class Runner {
                 provider.start(cache);
                 decorateSimple("Starting {} on port {}.", ref, provider.getPort());
 
-                cache.put(ref, provider);
+                cache.putMockProvider(provider);
+                cache.putMockObject(ref, provider.providedMock());
+
             });
             decorateSimple("All mocks created.");
 

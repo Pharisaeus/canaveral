@@ -5,7 +5,6 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import pl.codewise.canaveral.core.bean.inject.InjectMock;
 import pl.codewise.canaveral.core.bean.inject.InjectTestBean;
-import pl.codewise.canaveral.core.mock.MockProvider;
 
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
@@ -40,7 +39,7 @@ public class TestInstanceHelper {
                 .forEach(field -> {
                     InjectMock annotation = field.getAnnotation(InjectMock.class);
                     String mockRef = annotation.value();
-                    MockProvider mock;
+                    Object mock;
                     Class<?> mockType = field.getType();
                     if (Strings.isNullOrEmpty(mockRef)) {
                         mock = cache.getMock(mockType);

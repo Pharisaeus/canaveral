@@ -233,7 +233,7 @@ class RunnerTest {
     }
 
     @Test
-    public void shouldReinitializeContextWhenRequired() {
+    void shouldReinitializeContextWhenRequired() {
         //given
         setCanProceedForApplicationAndTestContext();
         runner.configureRunnerForTest(FullRunnerConfigurationTestClass.class);
@@ -265,7 +265,24 @@ class RunnerTest {
         //stop method has been called for the first the first mock
         assertThat(firstDummyMock.calledStop.get()).isTrue();
         assertThat(reinitializedDummyMockProvider.calledStop.get()).isFalse();
+    }
 
+    @Test
+    void shouldRegisterAndInjectProvidedMock() {
+        //given
+        TestInstanceHelper testInstanceHelper =
+                Runner.instance().configureRunnerForTest(MockProviderAdapterTestClass.class);
+
+        MockProviderAdapterTestClass testInstance = new MockProviderAdapterTestClass();
+        //when
+        testInstanceHelper.initializeTestInstance(testInstance);
+
+        //then
+        assertThat(testInstance.dummyMockObject)
+                .isEqualTo(MockProviderAdapterConfigurationProvider.dummyMockWrapper.providedMock());
+
+        assertThat(testInstance.namedDummyMockObject)
+                .isEqualTo(MockProviderAdapterConfigurationProvider.dummyMockWrapper.providedMock());
     }
 
     private void setCanProceedForApplicationAndTestContext() {

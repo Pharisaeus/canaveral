@@ -23,7 +23,7 @@ class RunnerCache implements RunnerContext {
     private static final Logger log = LoggerFactory.getLogger(RunnerCache.class);
 
     private final Map<String, Object> objects;
-    private final Set<MockProvider> mocks;
+    private final Set<MockProvider> mockProviders;
     private final Set<LifeCycleListener> listeners;
 
     private boolean isInitialized = false;
@@ -36,7 +36,7 @@ class RunnerCache implements RunnerContext {
         this.providerName = canonicalName;
         this.configuration = configuration;
         this.objects = new HashMap<>();
-        this.mocks = new HashSet<>();
+        this.mockProviders = new HashSet<>();
         this.listeners = new HashSet<>();
     }
 
@@ -97,15 +97,15 @@ class RunnerCache implements RunnerContext {
     }
 
     @Override
-    public MockProvider getMock(String ref) {
+    public Object getMock(String ref) {
         Object o = objects.get(ref);
         Preconditions.checkArgument(Objects.nonNull(o), ref + " was not found. Cannot inject this mock!");
-        return (MockProvider) o;
+        return o;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends MockProvider> T getMock(Class<?> mockType) {
-        return (T) mocks.stream()
+    public <T> T getMock(Class<?> mockType) {
+        return (T) objects.values().stream()
                 .filter(object -> mockType.isAssignableFrom(object.getClass()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Could not find any mock of type " + mockType));
@@ -113,13 +113,17 @@ class RunnerCache implements RunnerContext {
 
     @Override
     public Stream<MockProvider> getMocks() {
-        return mocks.stream();
+        return mockProviders.stream();
     }
 
-    void put(String ref, MockProvider mockProvider) {
-        objects.put(ref, mockProvider);
-        mocks.add(mockProvider);
+    void putMockProvider(MockProvider mockProvider) {
+        mockProviders.add(mockProvider);
     }
+
+    void putMockObject(String ref, Object mock) {
+        objects.put(ref, mock);
+    }
+
 
     @Override
     public void register(LifeCycleListener listener) {
@@ -139,7 +143,7 @@ class RunnerCache implements RunnerContext {
     }
 
     void callStopMocks() {
-        mocks.forEach(l -> {
+        mockProviders.forEach(l -> {
             try {
                 l.stop();
             } catch (Exception e) {
