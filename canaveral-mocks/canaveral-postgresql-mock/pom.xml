@@ -11,10 +11,6 @@
 
     <artifactId>canaveral-postgresql-mock</artifactId>
 
-    <properties>
-        <testcontainers.version>1.8.2</testcontainers.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>pl.codewise.canaveral</groupId>
@@ -23,7 +19,6 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>${testcontainers.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
