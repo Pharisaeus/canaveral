@@ -11,7 +11,7 @@ import pl.codewise.canaveral.mock.http.HttpRawRequest;
 import pl.codewise.canaveral.mock.http.Method;
 import pl.codewise.canaveral.mock.http.Mime;
 import pl.codewise.canaveral.mock.http.MockRuleProvider;
-import pl.codewise.canaveral.mock.http.StatusCode;
+import pl.codewise.canaveral.mock.http.HttpStatusCode;
 import pl.codewise.samples.spring.webapp.rest.model.Response;
 
 import javax.inject.Inject;
@@ -72,7 +72,7 @@ class RestClientIT extends BaseIT {
         httpMockProvider.createRule()
                 .whenCalledWith(Method.GET, "/search")
                 .withQueryParam("q", "fail now!")
-                .thenRespondWith(MockRuleProvider.Body.error(), StatusCode.INTERNAL_SERVER_ERROR);
+                .thenRespondWith(MockRuleProvider.Body.error(), HttpStatusCode.INTERNAL_SERVER_ERROR);
 
         // when
         assertThatThrownBy(() -> restClient.askGoogle("fail now!"))

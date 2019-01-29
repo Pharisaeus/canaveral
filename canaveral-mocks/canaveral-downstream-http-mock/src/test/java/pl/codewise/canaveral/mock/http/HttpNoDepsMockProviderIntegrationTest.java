@@ -56,7 +56,7 @@ class HttpNoDepsMockProviderIntegrationTest {
     }
 
     @AfterEach
-    void tearDown() throws Exception {
+    void tearDown() {
         httpMockProvider.resetToDefaults();
         httpMockProvider.stop();
     }
@@ -213,6 +213,56 @@ class HttpNoDepsMockProviderIntegrationTest {
     }
 
     @Test
+    void shouldAcceptFormPayloadFields() {
+        // given
+        Body payload = Body.asEncodedFieldsFrom(ImmutableMap.<String, String>builder()
+                .put("aa", "3")
+                .put("bb", "4")
+                .put("cc", "3")
+                .build());
+        httpMockProvider.createRule()
+                .whenCalledWith(Method.POST, "/other-resource")
+                .withPayload(payload)
+                .thenRespondWith(Body.asTextFrom("abc"));
+
+        HttpPost postRequest = createPostRequest("/other-resource", payload.getBody());
+
+        // when
+        HttpResponse response = getResponseForRequest(postRequest);
+
+        // then
+        assertThat(response.statusCode).isEqualTo(200);
+        assertThat(response.bodyAsString).isEqualTo("abc");
+    }
+
+    @Test
+    void shouldNotMatchWhenFormPayloadFieldsDoNotMatch() {
+        // given
+        Body expected = Body.asEncodedFieldsFrom(ImmutableMap.<String, String>builder()
+                .put("aa", "3")
+                .put("bb", "4")
+                .put("cc", "3")
+                .build());
+        Body payload = Body.asEncodedFieldsFrom(ImmutableMap.<String, String>builder()
+                .put("aa", "999999")
+                .put("bb", "4")
+                .put("cc", "3")
+                .build());
+        httpMockProvider.createRule()
+                .whenCalledWith(Method.POST, "/other-resource")
+                .withPayload(expected)
+                .thenRespondWith(Body.asTextFrom("abc"));
+
+        HttpPost postRequest = createPostRequest("/other-resource", payload.getBody());
+
+        // when
+        HttpResponse response = getResponseForRequest(postRequest);
+
+        // then
+        assertThat(response.statusCode).isEqualTo(404);
+    }
+
+    @Test
     void shouldRespondWithMultipleHeaders() {
         // given
         httpMockProvider.createRule()
@@ -249,6 +299,42 @@ class HttpNoDepsMockProviderIntegrationTest {
         Assertions.assertThat(capturedRequests).hasSize(1);
         assertThat(capturedRequests.get(0).getBody()).isEqualTo(payload);
         assertThat(response.bodyAsString).isEqualTo("cos");
+    }
+
+    @Test
+    void shouldMatchRequestUsingCustomRequestPredicate() {
+        // given
+        httpMockProvider.createRule()
+                .whenCalledWith(httpRawRequest -> true)
+                .thenRespondWith(Body.asTextFrom("cos"));
+        byte[] payload = "abc".getBytes();
+
+        // when
+        HttpResponse response = getResponseForPath("/other-resource", payload);
+
+        // then
+        List<HttpRawRequest> capturedRequests = httpMockProvider.getCapturedRequests();
+        Assertions.assertThat(capturedRequests).hasSize(1);
+        assertThat(capturedRequests.get(0).getBody()).isEqualTo(payload);
+        assertThat(response.bodyAsString).isEqualTo("cos");
+    }
+
+    @Test
+    void shouldNotMatchRequestUsingCustomRequestPredicate() {
+        // given
+        httpMockProvider.createRule()
+                .whenCalledWith(httpRawRequest -> false)
+                .thenRespondWith(Body.asTextFrom("cos"));
+        byte[] payload = "abc".getBytes();
+
+        // when
+        HttpResponse response = getResponseForPath("/other-resource", payload);
+
+        // then
+        List<HttpRawRequest> capturedRequests = httpMockProvider.getCapturedRequests();
+        Assertions.assertThat(capturedRequests).hasSize(1);
+
+        assertThat(response.statusCode).isEqualTo(404);
     }
 
     @SuppressWarnings("SameParameterValue")

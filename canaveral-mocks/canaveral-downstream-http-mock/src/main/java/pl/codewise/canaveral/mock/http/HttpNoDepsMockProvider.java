@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -91,7 +92,7 @@ public class HttpNoDepsMockProvider implements MockProvider {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         mockServer.stop(0);
     }
 
@@ -171,6 +172,11 @@ public class HttpNoDepsMockProvider implements MockProvider {
         @Override
         public void addRule(HttpRequestRule request, HttpResponseRule response) {
             rules.add(0, MockRule.create(request, response));
+        }
+
+        @Override
+        public void addRule(Predicate<HttpRawRequest> requestPredicate, HttpResponseRule response) {
+            rules.add(MockRule.create(requestPredicate, response));
         }
     }
 }

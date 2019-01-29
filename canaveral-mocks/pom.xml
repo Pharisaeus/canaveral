@@ -20,6 +20,7 @@
         <module>canaveral-postgresql-mock</module>
         <module>canaveral-redis-mock</module>
         <module>canaveral-jmx-service-mock</module>
+        <module>canaveral-sqs-mock</module>
     </modules>
 
     <properties>

@@ -22,6 +22,7 @@ import static java.util.Collections.emptySet;
 public class S3MockProvider implements MockProvider {
 
     private static final Logger log = LoggerFactory.getLogger(S3MockProvider.class);
+
     private final S3MockConfig s3MockConfig;
     private final String mockName;
     private int port = 0;

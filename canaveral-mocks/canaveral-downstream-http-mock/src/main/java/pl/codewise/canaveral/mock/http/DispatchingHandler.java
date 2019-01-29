@@ -18,7 +18,7 @@ class DispatchingHandler {
 
     private final HttpRuleRepository repository;
     private final Recorder recorder;
-    private final HttpResponseRule UNKNOWN = new HttpResponseRule(new byte[0], TEXT, StatusCode.NOT_FOUND, new
+    private final HttpResponseRule UNKNOWN = new HttpResponseRule(new byte[0], TEXT, HttpStatusCode.NOT_FOUND, new
             Headers());
 
     DispatchingHandler(HttpRuleRepository repository, Recorder recorder) {

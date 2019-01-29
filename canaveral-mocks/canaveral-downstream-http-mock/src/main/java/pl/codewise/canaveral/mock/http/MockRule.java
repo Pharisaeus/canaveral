@@ -19,11 +19,15 @@ class MockRule {
     private final HttpRequestRule request;
     private final HttpResponseRule response;
 
-    private MockRule(Predicate<HttpRawRequest> condition, HttpRequestRule request,
+    private MockRule(Predicate<HttpRawRequest> requestPredicate, HttpRequestRule request,
             HttpResponseRule response) {
-        this.condition = condition;
+        this.condition = requestPredicate;
         this.request = request;
         this.response = response;
+    }
+
+    static MockRule create(Predicate<HttpRawRequest> requestPredicate, HttpResponseRule response) {
+        return new MockRule(requestPredicate, null, response);
     }
 
     static MockRule create(HttpRequestRule ruleRequest, HttpResponseRule ruleResponse) {

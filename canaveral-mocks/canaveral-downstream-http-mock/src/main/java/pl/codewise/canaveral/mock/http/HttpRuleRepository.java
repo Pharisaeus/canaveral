@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Predicate;
 
 public class HttpRuleRepository implements HttpRuleCreator {
 
@@ -21,8 +22,13 @@ public class HttpRuleRepository implements HttpRuleCreator {
         rules.add(0, MockRule.create(request, response));
     }
 
+    @Override
+    public void addRule(Predicate<HttpRawRequest> requestPredicate, HttpResponseRule response) {
+        rules.add(MockRule.create(requestPredicate, response));
+    }
+
     public HttpRuleRepository removeRule(HttpRequestRule request) {
-        rules.removeIf(mockRule -> mockRule.getRequest().equals(request));
+        rules.removeIf(mockRule -> (mockRule.getRequest() != null) && mockRule.getRequest().equals(request));
         return this;
     }
 

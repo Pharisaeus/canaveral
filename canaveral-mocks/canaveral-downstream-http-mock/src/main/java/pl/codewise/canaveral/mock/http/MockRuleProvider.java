@@ -2,13 +2,18 @@ package pl.codewise.canaveral.mock.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.ImmutableMap.copyOf;
 import static java.util.Collections.emptyMap;
@@ -19,12 +24,20 @@ public class MockRuleProvider {
     private static final MessageCodec messageCodec = new MessageCodec(objectMapper);
     private final HttpRuleCreator ruleCreator;
 
+    static {
+        objectMapper.findAndRegisterModules();
+    }
+
     public MockRuleProvider(HttpRuleCreator ruleCreator) {
         this.ruleCreator = ruleCreator;
     }
 
     public ResponseCollector whenCalledWith(Method method, String pathPattern) {
         return new ResponseCollector(ruleCreator, method, pathPattern);
+    }
+
+    public ProvidedPredicateResponseCollector whenCalledWith(Predicate<HttpRawRequest> requestPredicate) {
+        return new ProvidedPredicateResponseCollector(ruleCreator, requestPredicate);
     }
 
     public static class File {
@@ -95,6 +108,13 @@ public class MockRuleProvider {
             return new Body(value, Mime.TEXT);
         }
 
+        public static Body asEncodedFieldsFrom(Map<String, String> fields) {
+            List<String> params =
+                    fields.entrySet().stream().map(entry -> encode(entry.getKey()) + "=" + encode(entry.getValue()))
+                            .collect(Collectors.toList());
+            return new Body(Joiner.on("&").join(params), Mime.X_WWW_FORM);
+        }
+
         public byte[] getBody() {
             return body;
         }
@@ -102,21 +122,45 @@ public class MockRuleProvider {
         public Mime getMime() {
             return mime;
         }
+
+        private static String encode(String val) {
+            try {
+                return URLEncoder.encode(val, "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                throw new IllegalArgumentException("Could not encode " + val);
+            }
+        }
     }
 
-    public class ResponseCollector {
+    public class ResponseCollector extends Respondable {
 
         private final HttpRuleCreator ruleCreator;
         private final Method method;
         private final String pathPattern;
         private final Map<String, List<String>> headers = new HashMap<>();
         private final Map<String, List<String>> query = new HashMap<>();
-        private final byte[] payload = new byte[0];
+        private Body payload = new Body(new byte[0], Mime.X_WWW_FORM);
 
         private ResponseCollector(HttpRuleCreator ruleCreator, Method method, String pathPattern) {
             this.ruleCreator = ruleCreator;
             this.method = method;
             this.pathPattern = pathPattern;
+        }
+
+        @Override
+        public void thenRespondWith(Body body, HttpStatusCode httpStatusCode, Map<String, List<String>> responseHeaders) {
+            HttpResponseRule httpResponseRule = new HttpResponseRule(body.body,
+                    body.mime,
+                    httpStatusCode,
+                    ImmutableMap.copyOf(responseHeaders));
+
+            HttpRequestRule httpRequestRule = new HttpRequestRule(method,
+                    pathPattern,
+                    copyOf(query),
+                    copyOf(headers),
+                    payload.getBody());
+
+            ruleCreator.addRule(httpRequestRule, httpResponseRule);
         }
 
         public ResponseCollector accepting(Mime mime) {
@@ -141,29 +185,9 @@ public class MockRuleProvider {
             return this;
         }
 
-        public void thenRespondWith(Body body) {
-            thenRespondWith(body, StatusCode.OK);
-        }
-
-        public void thenRespondWith(Body body, StatusCode statusCode) {
-            thenRespondWith(body, statusCode, emptyMap());
-        }
-
-        public void thenRespondWith(Body body, Map<String, List<String>> responseHeaders) {
-            thenRespondWith(body, StatusCode.OK, responseHeaders);
-        }
-
-        public void thenRespondWith(Body body, StatusCode statusCode, Map<String, List<String>> responseHeaders) {
-            HttpRequestRule httpRequestRule = new HttpRequestRule(method,
-                    pathPattern,
-                    copyOf(query),
-                    copyOf(headers),
-                    payload);
-            HttpResponseRule httpResponseRule = new HttpResponseRule(body.body,
-                    body.mime,
-                    statusCode,
-                    ImmutableMap.copyOf(responseHeaders));
-            ruleCreator.addRule(httpRequestRule, httpResponseRule);
+        public ResponseCollector withPayload(Body payload) {
+            this.payload = payload;
+            return this;
         }
 
         private void addHeader(String headerName, String headerValue) {
@@ -171,7 +195,43 @@ public class MockRuleProvider {
         }
     }
 
-    static {
-        objectMapper.findAndRegisterModules();
+    public class ProvidedPredicateResponseCollector extends Respondable {
+
+        private final HttpRuleCreator ruleCreator;
+        private Predicate<HttpRawRequest> requestPredicate;
+
+        private ProvidedPredicateResponseCollector(HttpRuleCreator ruleCreator,
+                Predicate<HttpRawRequest> requestPredicate) {
+            this.ruleCreator = ruleCreator;
+            this.requestPredicate = requestPredicate;
+        }
+
+        @Override
+        public void thenRespondWith(Body body, HttpStatusCode httpStatusCode, Map<String, List<String>> responseHeaders) {
+            HttpResponseRule httpResponseRule = new HttpResponseRule(body.body,
+                    body.mime,
+                    httpStatusCode,
+                    ImmutableMap.copyOf(responseHeaders));
+
+            ruleCreator.addRule(requestPredicate, httpResponseRule);
+        }
+    }
+
+    private abstract class Respondable {
+
+        public void thenRespondWith(Body body) {
+            thenRespondWith(body, HttpStatusCode.OK);
+        }
+
+        public void thenRespondWith(Body body, HttpStatusCode httpStatusCode) {
+            thenRespondWith(body, httpStatusCode, emptyMap());
+        }
+
+        public void thenRespondWith(Body body, Map<String, List<String>> responseHeaders) {
+            thenRespondWith(body, HttpStatusCode.OK, responseHeaders);
+        }
+
+        abstract public void thenRespondWith(Body body, HttpStatusCode httpStatusCode,
+                Map<String, List<String>> responseHeaders);
     }
 }

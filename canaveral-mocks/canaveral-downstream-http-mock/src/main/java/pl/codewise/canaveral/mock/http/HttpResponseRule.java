@@ -9,10 +9,10 @@ class HttpResponseRule {
 
     private final byte[] body;
     private final Mime contentType;
-    private final StatusCode status;
+    private final HttpStatusCode status;
     private final Map<String, List<String>> headers;
 
-    HttpResponseRule(byte[] body, Mime contentType, StatusCode status, Map<String, List<String>> headers) {
+    HttpResponseRule(byte[] body, Mime contentType, HttpStatusCode status, Map<String, List<String>> headers) {
         this.body = body;
         this.contentType = contentType;
         this.status = status;
@@ -27,7 +27,7 @@ class HttpResponseRule {
         return contentType;
     }
 
-    StatusCode getStatus() {
+    HttpStatusCode getStatus() {
         return status;
     }
 
