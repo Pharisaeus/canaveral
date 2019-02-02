@@ -8,9 +8,12 @@ import pl.codewise.canaveral.core.mock.MockConfig;
 import pl.codewise.canaveral.core.mock.MockProvider;
 import pl.codewise.canaveral.core.runtime.RunnerContext;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
+import static pl.codewise.canaveral.core.util.PropertyHelper.setProperty;
 
 public class PostgreSqlMockProvider implements MockProvider {
 
@@ -88,10 +91,19 @@ public class PostgreSqlMockProvider implements MockProvider {
 
     @Override
     public void start(RunnerContext context) {
-        log.info("Starting dockerized PostgreSql");
+        log.info("Starting dockerized PostgreSql from {}.", mockConfig.dockerImage);
 
         container = new PostgreSQLContainer(mockConfig.dockerImage);
         container.withDatabaseName(mockConfig.database);
+
+        mockConfig.envs.forEach((k, v) -> {
+            log.info("Adding env property {}={}.", k, v);
+            container.addEnv(k, v);
+        });
+        mockConfig.parameters.forEach((k, v) -> {
+            log.info("Adding parameter property {}={}.", k, v);
+            container.addParameter(k, v);
+        });
 
         container.start();
 
@@ -99,15 +111,15 @@ public class PostgreSqlMockProvider implements MockProvider {
         endpointUrl = container.getJdbcUrl();
 
         if (mockConfig.endpointProperty != null) {
-            System.setProperty(mockConfig.endpointProperty, endpointUrl);
+            setProperty(mockConfig.endpointProperty, endpointUrl);
         }
 
         if (mockConfig.userNameProperty != null) {
-            System.setProperty(mockConfig.userNameProperty, container.getUsername());
+            setProperty(mockConfig.userNameProperty, container.getUsername());
         }
 
         if (mockConfig.passwordProperty != null) {
-            System.setProperty(mockConfig.passwordProperty, container.getPassword());
+            setProperty(mockConfig.passwordProperty, container.getPassword());
         }
 
         jdbcManager = JdbcManager.create(endpointUrl, container.getUsername(), container.getPassword());
@@ -126,6 +138,8 @@ public class PostgreSqlMockProvider implements MockProvider {
         private String dockerImage = "postgres:10.4";
         private String userNameProperty;
         private String passwordProperty;
+        private Map<String, String> envs = new HashMap<>();
+        private Map<String, String> parameters = new HashMap<>();
 
         @Override
         public PostgreSqlMockProvider build(String mockName) {
@@ -154,6 +168,22 @@ public class PostgreSqlMockProvider implements MockProvider {
 
         public PostgresSqlMockConfig withDockerImage(String cassandraDockerImage) {
             this.dockerImage = requireNonNull(cassandraDockerImage);
+            return this;
+        }
+
+        public PostgresSqlMockConfig withEnvironmentVariable(String key, String value) {
+            String prevValue = this.envs.putIfAbsent(key, value);
+            if (prevValue != null) {
+                throw new IllegalStateException("You are overriding env variable " + prevValue + " for key " + key);
+            }
+            return this;
+        }
+
+        public PostgresSqlMockConfig withParameterVariable(String key, String value) {
+            String prevValue = this.parameters.putIfAbsent(key, value);
+            if (prevValue != null) {
+                throw new IllegalStateException("You are overriding parameter variable " + prevValue + " for key " + key);
+            }
             return this;
         }
     }

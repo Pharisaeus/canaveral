@@ -11,6 +11,7 @@ import pl.codewise.canaveral.core.runtime.RunnerContext;
 import java.time.Duration;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static pl.codewise.canaveral.core.util.PropertyHelper.setProperty;
 
 public class RedisMockProvider implements MockProvider {
 
@@ -53,7 +54,7 @@ public class RedisMockProvider implements MockProvider {
 
     @Override
     public void start(RunnerContext context) {
-        log.info("Starting redis mock from {}.", mockConfig.image);
+        log.info("Starting dockerized Redis from {}.", mockConfig.image);
 
         server = new GenericContainer(mockConfig.image)
                 .withExposedPorts(6379)
@@ -63,13 +64,8 @@ public class RedisMockProvider implements MockProvider {
         this.port = server.getFirstMappedPort();
         this.host = server.getContainerIpAddress();
 
-        setSystemProperty(mockConfig.portProperty, Integer.toString(port));
-        setSystemProperty(mockConfig.hostProperty, getHost());
-    }
-
-    private void setSystemProperty(String key, String value) {
-        System.setProperty(key, value);
-        log.info("Setting system property {} to {}.", key, System.getProperty(key));
+        setProperty(mockConfig.portProperty, Integer.toString(port));
+        setProperty(mockConfig.hostProperty, getHost());
     }
 
     @Override
@@ -116,7 +112,7 @@ public class RedisMockProvider implements MockProvider {
             return this;
         }
 
-        public RedisMockConfig overrideRedisVersion(String image) {
+        public RedisMockConfig withRedisDockerImage(String image) {
             checkArgument(image.startsWith("redis:"), "Redis docker image should be referenced as 'redis:version'.");
             this.image = image;
             return this;
